@@ -5,8 +5,10 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
 import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -14,36 +16,68 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import br.com.cargaemlote.utils.FileChecksUtil;
+
 @Service
 public class FileStorageServiceImpl implements StorageService {
 	
 //	@Value("${s3.file.storage}")
 //	private String pathStorage;
 	
-	private final Path root = Paths.get("S3");
+	private final Path pathTmp = Paths.get("S3/tmp");
+	private final Path pathFileOk = Paths.get("S3");
+	
+	
+	FileChecksUtil fileCheck = new FileChecksUtil();
 
 	  @Override
 	  public void init() {
 	    try {
-	      Files.createDirectory(root);
+	      Files.createDirectory(pathTmp);
 	    } catch (IOException e) {
 	      throw new RuntimeException("Could not initialize folder for upload!");
 	    }
 	  }
 
 	  @Override
-	  public void save(MultipartFile file) {
-	    try {
-	      Files.copy(file.getInputStream(), this.root.resolve(file.getOriginalFilename()));
-	    } catch (Exception e) {
-	      throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
-	    }
+	  public String save(MultipartFile file) {
+		  
+		  //Get File extension, only excel files xls and xlsx
+		  String fileExt = file.getOriginalFilename().split("\\.")[1];
+		  Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		  
+		  String fileName  = "tmp_cargalote_" + timestamp.getTime() +"."+fileExt;
+		  String fixfileName  = "cargalote_" + timestamp.getTime() +"."+fileExt;
+		  
+		  
+		  if(fileExt.equals("xlsx") || fileExt.equals("xls")) {
+			  
+			  try {
+
+				  System.out.println("AQUI");
+				  
+				 // fileCheck.checkColumns(file);
+				  
+			      //Files.copy(file.getInputStream(), this.pathTmp.resolve(file.getOriginalFilename()));
+				  Files.copy(file.getInputStream(), this.pathTmp.resolve(fileName));
+				  fileCheck.checkColumns(fileName,fixfileName);
+			      return "OK";
+			      
+			    } catch (Exception e) {
+			    	
+			      throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
+			      
+			    }
+		  } else {
+			  
+			  return "Arquivo não permitido! Operação foi cancelada.";
+		  }
 	  }
 
 	  @Override
 	  public Resource load(String filename) {
 	    try {
-	      Path file = root.resolve(filename);
+	      Path file = pathTmp.resolve(filename);
 	      Resource resource = new UrlResource(file.toUri());
 
 	      if (resource.exists() || resource.isReadable()) {
@@ -58,13 +92,13 @@ public class FileStorageServiceImpl implements StorageService {
 
 	  @Override
 	  public void deleteAll() {
-	    FileSystemUtils.deleteRecursively(root.toFile());
+	    FileSystemUtils.deleteRecursively(pathTmp.toFile());
 	  }
 
 	  @Override
 	  public Stream<Path> loadAll() {
 	    try {
-	      return Files.walk(this.root, 1).filter(path -> !path.equals(this.root)).map(this.root::relativize);
+	      return Files.walk(this.pathTmp, 1).filter(path -> !path.equals(this.pathTmp)).map(this.pathTmp::relativize);
 	    } catch (IOException e) {
 	      throw new RuntimeException("Could not load the files!");
 	    }
