@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ui.ModelMap;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +20,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.cargaemlote.entity.Cargaloteslote;
 import br.com.cargaemlote.repo.CargaEmLoteRepo;
+import br.com.cargaemlote.response.ResponseMessage;
 import br.com.cargaemlote.services.StorageService;
 import br.com.cargaemlote.utils.WriteExcelUtils;
 
@@ -24,6 +28,8 @@ import br.com.cargaemlote.utils.WriteExcelUtils;
 @RequestMapping(value = "/api/cargaemlote")
 public class CargaEmLoteController {
 	
+	@Value("${s3.file.storage}")
+	private String pathUpload;
 	
 	@Autowired
 	CargaEmLoteRepo repo;
@@ -43,17 +49,23 @@ public class CargaEmLoteController {
 		return repo.findAll();
 	}
 	
-	@PostMapping("/lotefile/upload")
-	public String handleFileUpload(@RequestParam("file") MultipartFile file,
-			RedirectAttributes redirectAttributes) {
-
-		storageService.store(file);
-		redirectAttributes.addFlashAttribute("message",
-				"ok" + file.getOriginalFilename());
-
-		return "redirect:/";
-	}
 	
+	@PostMapping("/uploadfile")
+	  public ResponseEntity<ResponseMessage> uploadFile(@RequestParam("file") MultipartFile file) {
+	    String message = "";
+	    
+	    System.out.println("PATH::: " + pathUpload);
+	    
+	    try {
+	      storageService.save(file);
+
+	      message = "Arquivo carregado com sucesso: " + file.getOriginalFilename();
+	      return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
+	    } catch (Exception e) {
+	      message = "Não foi possível executar o upload do arquivo: " + file.getOriginalFilename() + "!";
+	      return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(message));
+	    }
+	  }
 	
 	
 
