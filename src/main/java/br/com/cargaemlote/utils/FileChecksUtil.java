@@ -5,21 +5,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Array;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.util.CellAddress;
-import org.apache.poi.ss.util.CellReference;
-import org.apache.poi.util.IOUtils;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.web.multipart.MultipartFile;
 
 public class FileChecksUtil {
 	
@@ -81,17 +74,19 @@ public class FileChecksUtil {
 				
 				Files.copy(fst, path.resolve(fixFilename));
 				
+				return "OK";
+				
 			} else {
 				
 				System.out.println("ARRAY EQUAL ERROR");
+				return "NOK";
 			}
 			
 			
 		} catch (Exception e) {
 			// TODO: handle exception
+			return "NOK";
 		}
-		
-		return "OK";
 	}
 	
 	public String setNamefile() {

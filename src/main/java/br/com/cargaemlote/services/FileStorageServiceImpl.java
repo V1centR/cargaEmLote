@@ -60,8 +60,14 @@ public class FileStorageServiceImpl implements StorageService {
 				  
 			      //Files.copy(file.getInputStream(), this.pathTmp.resolve(file.getOriginalFilename()));
 				  Files.copy(file.getInputStream(), this.pathTmp.resolve(fileName));
-				  fileCheck.checkColumns(fileName,fixfileName);
-			      return "OK";
+				  
+				  if(fileCheck.checkColumns(fileName,fixfileName).equals("OK")) {
+					  return "OK";
+				  } else {
+					  return "NOK";
+				  }
+				  
+			      
 			      
 			    } catch (Exception e) {
 			    	
