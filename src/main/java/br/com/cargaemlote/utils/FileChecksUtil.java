@@ -13,14 +13,18 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 
+@PropertySource("src/main/resources/application.properties")
 public class FileChecksUtil {
 	
-	//@Value("${cargalote.file.columns}")
-	private String columns = "nome;cpf;data";
+	@Value("${cargalote.file.columns}")
+	private String columns;
+	//private String columns = "nome;cpf;data";
 	
 	private final Path pathTmp = Paths.get("S3/tmp");
-	private final Path path = Paths.get("S3");
+	private final Path path = Paths.get("/S3");
 	
 	
 	public String fileChecks(String fileExt) {
@@ -37,7 +41,6 @@ public class FileChecksUtil {
 		arr1.add("nome");
 		arr1.add("cpf");
 		arr1.add("data");
-		
 		
 		ArrayList<String> arr2 = new ArrayList<String>();
 		
@@ -63,17 +66,12 @@ public class FileChecksUtil {
 				arr2.add(cell.getStringCellValue());				
 			}			
 			
-			System.out.println("ARRAY1::: " + arr1);
-			System.out.println("ARRAY2::: " + arr2);
 			Object[] array1 = {arr1};  // arr1 contains only one element
 		    Object[] array2 = {arr2};
 			
 			if(Arrays.equals(array1,array2)){
 				
-				System.out.println("ARRAY EQUAL OK");
-				
 				Files.copy(fst, path.resolve(fixFilename));
-				
 				return "OK";
 				
 			} else {
@@ -89,14 +87,14 @@ public class FileChecksUtil {
 		}
 	}
 	
-	public String setNamefile() {
-		
-		String fileName = "arquivo_cargalote_";
-		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-		
-		
-		return fileName+timestamp.getTime();
-	}
+//	public String setNamefile() {
+//		
+//		String fileName = "arquivo_cargalote_";
+//		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+//		
+//		
+//		return fileName+timestamp.getTime();
+//	}
 	
 
 }

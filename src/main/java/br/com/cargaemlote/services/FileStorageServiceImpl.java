@@ -44,10 +44,11 @@ public class FileStorageServiceImpl implements StorageService {
 		  
 		  //Get File extension, only excel files xls and xlsx
 		  String fileExt = file.getOriginalFilename().split("\\.")[1];
-		  Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		  long timestamp = new Timestamp(System.currentTimeMillis()).getTime();
+
 		  
-		  String fileName  = "tmp_cargalote_" + timestamp.getTime() +"."+fileExt;
-		  String fixfileName  = "cargalote_" + timestamp.getTime() +"."+fileExt;
+		  String fileName  = "tmp_cargalote_" + timestamp +"."+fileExt;
+		  String fixfileName  = "cargalote_" + timestamp +"."+fileExt;
 		  
 		  
 		  if(fileExt.equals("xlsx") || fileExt.equals("xls")) {
